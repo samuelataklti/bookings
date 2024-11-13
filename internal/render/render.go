@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/samuelataklti/bookings/pkg/config"
-	"github.com/samuelataklti/bookings/pkg/models"
+	"github.com/justinas/nosurf"
+	"github.com/samuelataklti/bookings/internal/config"
+	"github.com/samuelataklti/bookings/internal/models"
 )
 
 var functions = template.FuncMap{}
@@ -21,11 +22,12 @@ func NewTemplate(a *config.AppConfig) {
 	app = a
 }
 
-func addDefualtData(td *models.TemplateData) *models.TemplateData {
+func addDefualtData(td *models.TemplateData, r *http.Request) *models.TemplateData {
+	td.CSRFToken = nosurf.Token(r)
 	return td
 }
 
-func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
+func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) {
 	//get the template cache from the app config
 	var tc map[string]*template.Template
 
@@ -43,7 +45,7 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData)
 
 	buf := new(bytes.Buffer)
 
-	td = addDefualtData(td)
+	td = addDefualtData(td, r)
 
 	_ = t.Execute(buf, td)
 
